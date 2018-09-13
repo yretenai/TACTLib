@@ -139,7 +139,12 @@ namespace TACTLib.Client {
         /// <returns>Loaded file</returns>
         public Stream OpenCKey(CKey key) {
             if (EncodingHandler.TryGetEncodingEntry(key, out EncodingHandler.CKeyEntry entry)) {
-                return OpenEKey(entry.EKey);
+                try {
+                    return OpenEKey(entry.EKey);
+                } catch (InvalidDataException) {
+                    Logger.Error("debug", $"c: {entry.CKey} e: {entry.EKey} size: {entry.GetSize()} count: {entry.EKeyCount}");
+                    throw;
+                }
             }
             Debugger.Log(0, "ContainerHandler", $"Missing encoding entry for CKey {key.ToHexString()}");
             return null;

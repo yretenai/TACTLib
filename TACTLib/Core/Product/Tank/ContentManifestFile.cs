@@ -106,7 +106,13 @@ namespace TACTLib.Core.Product.Tank {
 
         public Stream OpenFile(ClientHandler client, ulong guid) {
             var data = GetHashData(guid);
-            return client.OpenCKey(data.ContentKey);
+            try {
+                return client.OpenCKey(data.ContentKey);
+            } catch (InvalidDataException) {
+                Logger.Debug("debug", $"{guid:X8}");
+                Logger.Debug("debug", "------");
+                return null;
+            }
         }
     }
 }

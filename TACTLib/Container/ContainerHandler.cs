@@ -129,6 +129,12 @@ namespace TACTLib.Container {
                 dataStream.Position += 16;
                 
                 int size = reader.ReadInt32();
+
+                if (size < 0) {
+                    Logger.Debug("debug", $"file failing due to neg size ({size})");
+                    Logger.Error("debug", $"{indexEntry.Index} {indexEntry.Offset}");
+                    throw new InvalidDataException("data size < 0");
+                }
                 
                 // 2+8 byte block of something?
                 dataStream.Position += 10;
