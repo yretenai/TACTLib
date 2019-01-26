@@ -63,16 +63,29 @@ namespace TACTLib.Core.Product.Tank {
             Logger.Debug("CMF", $"{name} key:{string.Join(" ", key.Select(x => x.ToString("X2")))}");
             Logger.Debug("CMF", $"{name} iv:{string.Join(" ", iv.Select(x => x.ToString("X2")))}");
         }
+        
+        private const string BRANCH = "master";
 
         private static bool TestVersion(TACTProduct product, uint headerBuildVersion) {
             if (Providers[product].ContainsKey(headerBuildVersion)) return true;
-            var testUrl = $"https://raw.githubusercontent.com/overtools/TACTLib/master/TACTLib/Core/Product/Tank/CMF/ProCMF_{headerBuildVersion}.cs";
-            using (var http = new HttpClient()) {
-                var response = http.GetAsync(testUrl)
-                                   .GetAwaiter()
-                                   .GetResult();
-                if (response.IsSuccessStatusCode) {
-                    Compile(response.Content.ReadAsStringAsync().GetAwaiter().GetResult());
+            var name = $"TACTLib.ProCMF_{headerBuildVersion}.dll";
+            if (File.Exists(name)) {
+                Logger.Info("CMF", $"Loading compiled CMF procedure...");
+                AddProviders(Assembly.LoadFile(Path.GetFullPath(name)));
+            } else {
+                var testUrl = $"https://raw.githubusercontent.com/overtools/TACTLib/{BRANCH}/TACTLib/Core/Product/Tank/CMF/ProCMF_{headerBuildVersion}.cs";
+                Logger.Info("CMF", "Attempting to download CMF info...");
+                using (var http = new HttpClient()) {
+                    var response = http.GetAsync(testUrl)
+                                       .GetAwaiter()
+                                       .GetResult();
+                    if (response.IsSuccessStatusCode) {
+                        Compile(response.Content.ReadAsStringAsync()
+                                        .GetAwaiter()
+                                        .GetResult());
+                    } else {
+                        return false;
+                    }
                 }
             }
 
@@ -133,7 +146,7 @@ namespace TACTLib.Core.Product.Tank {
                 }
 
                 if (ParsedExpressions.Add(hash)) {
-                    Logger.Error("CMF", "Compiling new CMF procedure.");
+                    Logger.Warn("CSC", "Compiling new CMF procedure.");
                     var provider   = new CSharpCodeProvider();
                     var parameters = new CompilerParameters();
                     parameters.ReferencedAssemblies.Add("mscorlib.dll");
@@ -150,7 +163,7 @@ namespace TACTLib.Core.Product.Tank {
                     parameters.CompilerOptions         = "/unsafe /optimize /platform:x64 /langversion:latest";
                     var results = provider.CompileAssemblyFromSource(parameters, cs);
                     if (results.Errors.HasErrors) {
-                        Logger.Error("CMF", "Catastrophic failure.");
+                        Logger.Error("CSC", "Catastrophic failure.");
                         foreach (CompilerError error in results.Errors) {
                             Logger.Error("CSC", $"{error.ErrorNumber}: {error.ErrorText}");
                         }
@@ -161,7 +174,7 @@ namespace TACTLib.Core.Product.Tank {
                     assembly = results.CompiledAssembly;
                 }
             } else {
-                assembly = Assembly.LoadFile(name);
+                assembly = Assembly.LoadFile(Path.GetFullPath(name));
             }
 
             AddProviders(assembly);
