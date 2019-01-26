@@ -1,3 +1,4 @@
+// <TACT xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" HASH="8E802688BBB213599BD7D2325C7E1B215FD9B87F" NAME="TACTLib.ProCMF_38044.dll" xmlns="https://chomp.gg/types/tactheader" />
 using static TACTLib.Core.Product.Tank.CMFCryptHandler;
 using static TACTLib.Core.Product.Tank.ContentManifestFile;
 
